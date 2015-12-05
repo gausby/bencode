@@ -11,8 +11,13 @@ defmodule Bencode.Decoder do
         {:error, "no data"}
 
       %__MODULE__{data: data, rest: ""} ->
-        data
+        {:ok, data}
     end
+  end
+
+  def decode!(data) do
+    {:ok, data} = decode(data)
+    data
   end
 
   defp do_decode(%__MODULE__{rest: <<"i", data::binary>>} = state),

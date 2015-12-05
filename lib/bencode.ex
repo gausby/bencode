@@ -6,4 +6,8 @@ defmodule Bencode do
   @spec decode(String.t) :: Integer | String.t | List | Map | no_return
   defdelegate decode(data),
     to: Bencode.Decoder
+
+  @spec decode!(String.t) :: Integer | String.t | List | Map | no_return
+  defdelegate decode!(data),
+    to: Bencode.Decoder
 end
