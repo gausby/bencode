@@ -3,7 +3,7 @@ defmodule Bencode do
   defdelegate encode(data),
     to: Bencode.Encoder
 
-  @spec decode(String.t) :: Integer | String.t | List | Map | no_return
+  @spec decode(String.t) :: {:ok, Integer | String.t | List | Map | no_return, nil | binary}
   defdelegate decode(data),
     to: Bencode.Decoder
 
