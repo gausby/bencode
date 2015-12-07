@@ -15,11 +15,6 @@ defmodule Bencode.Decoder do
     end
   end
 
-  def decode!(data) do
-    {:ok, data, _} = decode(data)
-    data
-  end
-
   defp do_decode(%__MODULE__{rest: <<"i", data::binary>>} = state),
     do: decode_integer(%__MODULE__{state|rest: data}, [])
   defp do_decode(%__MODULE__{rest: <<"l", data::binary>>} = state),
