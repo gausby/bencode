@@ -8,11 +8,30 @@ defmodule Bencode.Mixfile do
      test_pattern: "*_{test,eqc}.exs",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
+     description: description,
+     package: package,
      deps: deps]
   end
 
   def application do
     [applications: [:logger]]
+  end
+
+  defp description do
+    """
+    A bencode encoder and decoder.
+
+    The decoder will return the info hash with along with the decoded data, and
+    the encoder is implemented as a protocol, allowing any data structure to be
+    bcode encoded.
+    """
+  end
+
+  def package do
+    [files: ["lib", "mix.exs", "README*", "LICENSE"],
+     maintainers: ["Martin Gausby"],
+     licenses: ["Apache 2.0"],
+     links: %{"GitHub" => "https://github.com/gausby/bencode"}]
   end
 
   defp deps do
