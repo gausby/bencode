@@ -2,11 +2,22 @@ defmodule Bencode.Decoder do
   defstruct(
     rest: "",
     checksum: nil,
-    data: nil
+    data: nil,
+    opts: %{}
   )
 
   def decode(data) do
     case do_decode(%__MODULE__{rest: data}) do
+      %__MODULE__{data: nil} ->
+        {:error, "no data"}
+
+      %__MODULE__{data: data, rest: ""} ->
+        {:ok, data}
+    end
+  end
+
+  def decode_with_info_hash(data) do
+    case do_decode(%__MODULE__{rest: data, opts: %{calculate_info_hash: true}}) do
       %__MODULE__{data: nil} ->
         {:error, "no data"}
 
@@ -23,7 +34,7 @@ defmodule Bencode.Decoder do
     do: decode_dictionary(%__MODULE__{state|rest: data}, %{})
   # handle info dictionary, if present the checksum should get calculated
   # from the verbatim info data; not all benencoders are build the same
-  defp do_decode(%__MODULE__{rest: <<"4:infod", data::binary>>} = state) do
+  defp do_decode(%__MODULE__{rest: <<"4:infod", data::binary>>, opts: %{calculate_info_hash: true}} = state) do
     # consume entire info-dictionary
     info_directory = "d" <> data
     data_length = get_data_length(info_directory)
@@ -57,10 +68,11 @@ defmodule Bencode.Decoder do
   defp decode_list(%__MODULE__{rest: <<"e", rest::binary>>} = state, acc),
     do: %__MODULE__{state|rest: rest, data: acc |> Enum.reverse}
   defp decode_list(%__MODULE__{rest: data} = state, acc) do
-    {item, rest} = case do_decode(%__MODULE__{state|rest: data}) do
-    %__MODULE__{data: data, rest: rest} ->
-        {data, rest}
-    end
+    {item, rest} =
+      case do_decode(%__MODULE__{state|rest: data}) do
+        %__MODULE__{data: data, rest: rest} ->
+          {data, rest}
+      end
     decode_list(%__MODULE__{state|rest: rest}, [item|acc])
   end
 
@@ -69,8 +81,8 @@ defmodule Bencode.Decoder do
     %__MODULE__{state|rest: rest, data: acc}
   end
   defp decode_dictionary(%__MODULE__{rest: rest} = state, acc) do
-    %__MODULE__{data: key, rest: rest, checksum: checksum} = do_decode(%__MODULE__{rest: rest})
-    %__MODULE__{data: value, rest: rest} = do_decode(%__MODULE__{rest: rest, checksum: checksum})
+    %__MODULE__{data: key, rest: rest, checksum: checksum} = do_decode(%__MODULE__{state|rest: rest})
+    %__MODULE__{data: value, rest: rest} = do_decode(%__MODULE__{state|rest: rest, checksum: checksum})
 
     decode_dictionary(%__MODULE__{state|rest: rest, checksum: checksum}, Map.put_new(acc, key, value))
   end

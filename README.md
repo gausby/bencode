@@ -6,8 +6,9 @@ A Bencode encoder and decoder for Elixir. The decoder will return the checksum v
 
 * `Bencode.encode/1` will encode a given data structure to the b-code representation.
 
-* `Bencode.decode/1` will decode a b-code encoded string and return a 3-tuple; containing the status (`:ok`), its Elixir data structure representation along with the checksum of the info dictionary. If no info-dictionary was found the last value will be `nil`.
+* `Bencode.decode/1` will decode a b-code encoded string and return a 2-tuple; containing the status (`:ok`) and its Elixir data structure representation.
 
+* `Bencode.decode_with_info_hash/1` will decode a b-code encoded string and return a 3-tuple; containing the status (`:ok`), its Elixir data structure representation along with the checksum of the info dictionary. If no info-dictionary was found the last value will be `nil`.
 
 ## Installation
 
@@ -16,7 +17,7 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
   1. Add bencode to your list of dependencies in `mix.exs`:
 
         def deps do
-          [{:bencode, "~> 0.0.1"}]
+          [{:bencode, "~> 0.0.2"}]
         end
 
   2. Ensure bencode is started before your application:

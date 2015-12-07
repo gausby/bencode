@@ -3,7 +3,7 @@ defmodule Bencode.Mixfile do
 
   def project do
     [app: :bencode,
-     version: "0.0.1",
+     version: "0.0.2",
      elixir: "~> 1.1",
      test_pattern: "*_{test,eqc}.exs",
      build_embedded: Mix.env == :prod,
