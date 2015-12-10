@@ -3,7 +3,7 @@ defmodule Bencode.Mixfile do
 
   def project do
     [app: :bencode,
-     version: "0.0.2",
+     version: "0.1.0",
      elixir: "~> 1.2.0-rc",
      test_pattern: "*_{test,eqc}.exs",
      build_embedded: Mix.env == :prod,
@@ -31,7 +31,8 @@ defmodule Bencode.Mixfile do
     [files: ["lib", "mix.exs", "README*", "LICENSE"],
      maintainers: ["Martin Gausby"],
      licenses: ["Apache 2.0"],
-     links: %{"GitHub" => "https://github.com/gausby/bencode"}]
+     links: %{"GitHub" => "https://github.com/gausby/bencode",
+              "Issues" => "https://github.com/gausby/bencode/issues"}]
   end
 
   defp deps do
