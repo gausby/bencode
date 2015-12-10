@@ -10,9 +10,14 @@ defmodule BencodeTest do
   end
 
   test "returning error tuples on faulty input" do
+    # unexpected character
     {:error, reason} = Bencode.decode("i1be")
-    assert reason =~ "token at 2"
+    assert reason =~ "character at 2"
 
+  end
+
+  test "returning error tuples on faulty input containing only strings" do
+    # too short of a string
     {:error, reason} = Bencode.decode("3:fo")
     assert reason =~ "at 2 "
     assert reason =~ "out of bounds"

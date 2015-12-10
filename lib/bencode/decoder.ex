@@ -66,8 +66,8 @@ defmodule Bencode.Decoder do
   defp do_decode(%__MODULE__{rest: <<first, _::binary>>} = state) when first in ?0..?9 do
     decode_string(state, [])
   end
-  defp do_decode(%__MODULE__{rest: <<token, _::binary>>, position: position}) do
-    {:error, "unexpected token #{token} at #{position}"}
+  defp do_decode(%__MODULE__{rest: <<char, _::binary>>, position: position}) do
+    {:error, "Unexpected character #{char} at #{position}, expected a string; an integer; a list; or a dictionary"}
   end
 
   #=integers -----------------------------------------------------------
@@ -81,9 +81,9 @@ defmodule Bencode.Decoder do
     new_state = %__MODULE__{state|position: state.position + 1, rest: rest}
     decode_integer(new_state, [current|acc])
   end
-  defp decode_integer(%__MODULE__{rest: <<token, _::binary>>, position: position}, _) do
-    {:error, "Unexpected token at #{position}, expected a number or an `e` but got #{token}"}
-  end
+  # errors
+  defp decode_integer(%__MODULE__{rest: <<char, _::binary>>, position: position}, _),
+    do: {:error, "Unexpected character at #{position}, expected a number or an `e` but got #{char}"}
 
   #=strings ------------------------------------------------------------
   defp decode_string(%__MODULE__{rest: <<":", data::binary>>} = state, acc) do
@@ -106,8 +106,8 @@ defmodule Bencode.Decoder do
               rest: rest}
     decode_string(new_state, [number|acc])
   end
-  defp decode_string(%__MODULE__{rest: <<token, _::binary>>, position: position}, _) do
-    {:error, "Unexpected token at #{position}, expected a number or an `:` but got #{token}"}
+  defp decode_string(%__MODULE__{rest: <<char, _::binary>>, position: position}, _) do
+    {:error, "Unexpected character at #{position}, expected a number or an `:` but got #{char}"}
   end
 
   #=lists --------------------------------------------------------------
