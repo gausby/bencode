@@ -69,6 +69,9 @@ defmodule Bencode.Decoder do
   defp do_decode(%__MODULE__{rest: <<char, _::binary>>, position: position}) do
     {:error, "Unexpected character at #{position}, expected a string; an integer; a list; or a dictionary, got: #{char}"}
   end
+  # handle empty strings
+  defp do_decode(%__MODULE__{rest: <<>>} = state),
+    do: state
 
   #=integers -----------------------------------------------------------
   defp decode_integer(%__MODULE__{rest: <<"e", rest::binary>>} = state, acc) when length(acc) > 0 do

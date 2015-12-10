@@ -60,4 +60,8 @@ defmodule BencodeTest do
     {:error, reason} = Bencode.decode("e")
     assert reason =~ "Unexpected character at 0"
   end
+
+  test "empty data should return nil" do
+    assert {:ok, nil} = Bencode.decode("")
+  end
 end
