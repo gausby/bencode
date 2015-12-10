@@ -67,7 +67,7 @@ defmodule Bencode.Decoder do
     decode_string(state, [])
   end
   defp do_decode(%__MODULE__{rest: <<char, _::binary>>, position: position}) do
-    {:error, "Unexpected character #{char} at #{position}, expected a string; an integer; a list; or a dictionary"}
+    {:error, "Unexpected character at #{position}, expected a string; an integer; a list; or a dictionary, got: #{char}"}
   end
 
   #=integers -----------------------------------------------------------
@@ -84,7 +84,7 @@ defmodule Bencode.Decoder do
   defp decode_integer(%__MODULE__{rest: <<"e", _::binary>>} = state, []),
     do: {:error, "Empty integer starting at #{state.position - 1}"}
   defp decode_integer(%__MODULE__{rest: <<char, _::binary>>, position: position}, _),
-    do: {:error, "Unexpected character at #{position}, expected a number or an `e` but got #{char}"}
+    do: {:error, "Unexpected character at #{position}, expected a number or an `e`, got: #{char}"}
 
   #=strings ------------------------------------------------------------
   defp decode_string(%__MODULE__{rest: <<":", data::binary>>} = state, acc) do
@@ -108,7 +108,7 @@ defmodule Bencode.Decoder do
     decode_string(new_state, [number|acc])
   end
   defp decode_string(%__MODULE__{rest: <<char, _::binary>>, position: position}, _) do
-    {:error, "Unexpected character at #{position}, expected a number or an `:` but got #{char}"}
+    {:error, "Unexpected character at #{position}, expected a number or an `:`, got: #{char}"}
   end
 
   #=lists --------------------------------------------------------------
@@ -129,7 +129,7 @@ defmodule Bencode.Decoder do
   end
   # errors
   defp decode_list(%__MODULE__{rest: <<>>, position: position}, _) do
-    {:error, "Unexpected character at #{position}, expected data or an end character but got end of data"}
+    {:error, "Unexpected character at #{position}, expected data or an end character, got end of data"}
   end
 
   #=dictionaries -------------------------------------------------------
@@ -145,7 +145,7 @@ defmodule Bencode.Decoder do
   end
   # errors
   defp decode_dictionary(%__MODULE__{rest: <<>>, position: position}, _) do
-    {:error, "Unexpected character at #{position}, expected data or an end character but got end of data"}
+    {:error, "Unexpected character at #{position}, expected data or an end character, got end of data"}
   end
 
   #=helpers ============================================================
