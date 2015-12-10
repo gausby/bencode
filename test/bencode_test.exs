@@ -1,5 +1,5 @@
 defmodule BencodeTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   doctest Bencode
 
   test "calculate checksum of info directory when decoding" do

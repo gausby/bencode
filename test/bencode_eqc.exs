@@ -1,5 +1,5 @@
 defmodule BencodeEQC do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   use EQC.ExUnit
 
   # numbers
