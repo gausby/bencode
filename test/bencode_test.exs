@@ -55,4 +55,9 @@ defmodule BencodeTest do
     assert reason =~ "Unexpected character"
     assert reason =~ "at 4"
   end
+
+  test "faulty data at top level" do
+    {:error, reason} = Bencode.decode("e")
+    assert reason =~ "Unexpected character at 0"
+  end
 end
