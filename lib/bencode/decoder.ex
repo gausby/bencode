@@ -13,7 +13,7 @@ defmodule Bencode.Decoder do
         {:ok, data}
 
       %__MODULE__{rest: <<char, _::binary>>, position: position} ->
-        {:error, "Unexpected character at #{position}, expected no more data, got: #{char}"}
+        {:error, "unexpected character at #{position}, expected no more data, got: #{char}"}
 
       {:error, _} = error ->
         error
@@ -26,7 +26,7 @@ defmodule Bencode.Decoder do
         {:ok, data, checksum}
 
       %__MODULE__{rest: <<char, _::binary>>, position: position} ->
-        {:error, "Unexpected character at #{position}, expected no more data, got: #{char}"}
+        {:error, "unexpected character at #{position}, expected no more data, got: #{char}"}
 
       {:error, _} = error ->
         error
@@ -73,7 +73,7 @@ defmodule Bencode.Decoder do
     decode_string(state, [])
   end
   defp do_decode(%__MODULE__{rest: <<char, _::binary>>, position: position}) do
-    {:error, "Unexpected character at #{position}, expected a string; an integer; a list; or a dictionary, got: #{char}"}
+    {:error, "unexpected character at #{position}, expected a string; an integer; a list; or a dictionary, got: #{char}"}
   end
   # handle empty strings
   defp do_decode(%__MODULE__{rest: <<>>} = state),
@@ -91,9 +91,9 @@ defmodule Bencode.Decoder do
   end
   # errors
   defp decode_integer(%__MODULE__{rest: <<"e", _::binary>>} = state, []),
-    do: {:error, "Empty integer starting at #{state.position - 1}"}
+    do: {:error, "empty integer starting at #{state.position - 1}"}
   defp decode_integer(%__MODULE__{rest: <<char, _::binary>>, position: position}, _),
-    do: {:error, "Unexpected character at #{position}, expected a number or an `e`, got: #{char}"}
+    do: {:error, "unexpected character at #{position}, expected a number or an `e`, got: #{char}"}
 
   #=strings ------------------------------------------------------------
   defp decode_string(%__MODULE__{rest: <<":", data::binary>>} = state, acc) do
@@ -106,7 +106,7 @@ defmodule Bencode.Decoder do
                 data: string}
 
       _ ->
-        {:error, "Expected a string of length #{length} at #{state.position + 1} but got out of bounds"}
+        {:error, "expected a string of length #{length} at #{state.position + 1} but got out of bounds"}
     end
   end
   defp decode_string(%__MODULE__{rest: <<number, rest::binary>>} = state, acc) when number in ?0..?9 do
@@ -117,7 +117,7 @@ defmodule Bencode.Decoder do
     decode_string(new_state, [number|acc])
   end
   defp decode_string(%__MODULE__{rest: <<char, _::binary>>, position: position}, _) do
-    {:error, "Unexpected character at #{position}, expected a number or an `:`, got: #{char}"}
+    {:error, "unexpected character at #{position}, expected a number or an `:`, got: #{char}"}
   end
 
   #=lists --------------------------------------------------------------
@@ -138,7 +138,7 @@ defmodule Bencode.Decoder do
   end
   # errors
   defp decode_list(%__MODULE__{rest: <<>>, position: position}, _) do
-    {:error, "Unexpected character at #{position}, expected data or an end character, got end of data"}
+    {:error, "unexpected character at #{position}, expected data or an end character, got end of data"}
   end
 
   #=dictionaries -------------------------------------------------------
@@ -154,7 +154,7 @@ defmodule Bencode.Decoder do
   end
   # errors
   defp decode_dictionary(%__MODULE__{rest: <<>>, position: position}, _) do
-    {:error, "Unexpected character at #{position}, expected data or an end character, got end of data"}
+    {:error, "unexpected character at #{position}, expected data or an end character, got end of data"}
   end
 
   #=helpers ============================================================

@@ -15,7 +15,7 @@ defmodule BencodeTest do
     assert reason =~ "character at 2"
 
     {:error, reason} = Bencode.decode("ie")
-    assert reason =~ "Empty integer"
+    assert reason =~ "empty integer"
     assert reason =~ "starting at 0"
   end
 
@@ -32,7 +32,7 @@ defmodule BencodeTest do
     assert reason =~ "end of data"
 
     {:error, reason} = Bencode.decode("li42eiee")
-    assert reason =~ "Empty integer"
+    assert reason =~ "empty integer"
     assert reason =~ "starting at 5"
   end
 
@@ -42,26 +42,26 @@ defmodule BencodeTest do
     assert reason =~ "end of data"
 
     {:error, reason} = Bencode.decode("d3:fooiee") # empty integer as value
-    assert reason =~ "Empty integer"
+    assert reason =~ "empty integer"
     assert reason =~ "at 6"
   end
 
   test "returning error tuples on faulty input containing dictionaries with strings" do
     {:error, reason} = Bencode.decode("d3:foo2:bare") # too short of a string as value
-    assert reason =~ "Unexpected character"
+    assert reason =~ "unexpected character"
     assert reason =~ "at 10"
 
     {:error, reason} = Bencode.decode("d1:foo2:bare") # faulty string as key
-    assert reason =~ "Unexpected character"
+    assert reason =~ "unexpected character"
     assert reason =~ "at 4"
   end
 
   test "faulty data at top level" do
     {:error, reason} = Bencode.decode("e")
-    assert reason =~ "Unexpected character at 0"
+    assert reason =~ "unexpected character at 0"
 
     {:error, reason} = Bencode.decode("i1ei2e")
-    assert reason =~ "Unexpected character"
+    assert reason =~ "unexpected character"
     assert reason =~ "expected no more data"
   end
 
