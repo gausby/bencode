@@ -6,9 +6,11 @@ A Bencode encoder and decoder for Elixir. The decoder will return the checksum v
 
 * `Bencode.encode/1` will encode a given data structure to the b-code representation.
 
-* `Bencode.decode/1` will decode a b-code encoded string and return a 2-tuple; containing the status (`:ok`) and its Elixir data structure representation.
+* `Bencode.decode/1` will decode a b-code encoded string and return a 2-tuple; containing the status (`:ok`) and its Elixir data structure representation. Should the data be invalid a 2-tuple will get returned with `{:error, reason}`
 
-* `Bencode.decode_with_info_hash/1` will decode a b-code encoded string and return a 3-tuple; containing the status (`:ok`), its Elixir data structure representation along with the checksum of the info dictionary. If no info-dictionary was found the last value will be `nil`.
+* `Bencode.decode!/1` will decode a b-code encoded string and return the decoded result as a Elixir data structure; if the input is invalid an it will raise with the reason.
+
+* `Bencode.decode_with_info_hash/1` will decode a b-code encoded string and return a 3-tuple; containing the status (`:ok`), its Elixir data structure representation along with the checksum of the info dictionary. If no info-dictionary was found the last value will be `nil`. `{:error, reason}` will get returned if the input data was invalid b-code.
 
 ## Installation
 
