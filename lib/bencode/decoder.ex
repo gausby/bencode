@@ -71,17 +71,18 @@ defmodule Bencode.Decoder do
   end
 
   #=integers -----------------------------------------------------------
-  defp decode_integer(%__MODULE__{rest: <<"e", rest::binary>>} = state, acc) do
+  defp decode_integer(%__MODULE__{rest: <<"e", rest::binary>>} = state, acc) when length(acc) > 0 do
     %__MODULE__{state|position: state.position + 1,
                       rest: rest,
                       data: prepare_integer(acc)}
   end
-  defp decode_integer(%__MODULE__{rest: <<current, rest::binary>>} = state, acc)
-  when current == ?- or current in ?0..?9 do
+  defp decode_integer(%__MODULE__{rest: <<current, rest::binary>>} = state, acc) when current == ?- or current in ?0..?9 do
     new_state = %__MODULE__{state|position: state.position + 1, rest: rest}
     decode_integer(new_state, [current|acc])
   end
   # errors
+  defp decode_integer(%__MODULE__{rest: <<"e", _::binary>>} = state, []),
+    do: {:error, "Empty integer starting at #{state.position - 1}"}
   defp decode_integer(%__MODULE__{rest: <<char, _::binary>>, position: position}, _),
     do: {:error, "Unexpected character at #{position}, expected a number or an `e` but got #{char}"}
 

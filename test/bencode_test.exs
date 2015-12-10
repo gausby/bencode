@@ -9,11 +9,14 @@ defmodule BencodeTest do
     assert checksum == <<109, 34, 98, 18, 111, 235, 110, 199, 189, 52, 100, 147, 80, 37, 200, 198, 9, 192, 17, 157>>
   end
 
-  test "returning error tuples on faulty input" do
+  test "returning error tuples on faulty input containing only integers" do
     # unexpected character
     {:error, reason} = Bencode.decode("i1be")
     assert reason =~ "character at 2"
 
+    {:error, reason} = Bencode.decode("ie")
+    assert reason =~ "Empty integer"
+    assert reason =~ "starting at 0"
   end
 
   test "returning error tuples on faulty input containing only strings" do
