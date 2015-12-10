@@ -12,6 +12,9 @@ defmodule Bencode.Decoder do
       %__MODULE__{data: data, rest: ""} ->
         {:ok, data}
 
+      %__MODULE__{rest: <<char, _::binary>>, position: position} ->
+        {:error, "Unexpected character at #{position}, expected no more data, got: #{char}"}
+
       {:error, _} = error ->
         error
     end
@@ -21,6 +24,9 @@ defmodule Bencode.Decoder do
     case do_decode(%__MODULE__{rest: data, opts: %{calculate_info_hash: true}}) do
       %__MODULE__{data: data, rest: "", checksum: checksum} ->
         {:ok, data, checksum}
+
+      %__MODULE__{rest: <<char, _::binary>>, position: position} ->
+        {:error, "Unexpected character at #{position}, expected no more data, got: #{char}"}
 
       {:error, _} = error ->
         error

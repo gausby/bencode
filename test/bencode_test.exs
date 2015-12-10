@@ -59,6 +59,10 @@ defmodule BencodeTest do
   test "faulty data at top level" do
     {:error, reason} = Bencode.decode("e")
     assert reason =~ "Unexpected character at 0"
+
+    {:error, reason} = Bencode.decode("i1ei2e")
+    assert reason =~ "Unexpected character"
+    assert reason =~ "expected no more data"
   end
 
   test "empty data should return nil" do
