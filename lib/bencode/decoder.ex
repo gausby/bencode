@@ -118,13 +118,18 @@ defmodule Bencode.Decoder do
             rest: rest,
             data: acc |> Enum.reverse}
   end
-  defp decode_list(%__MODULE__{rest: data} = state, acc) do
-    {item, rest, position} =
-      case do_decode(%__MODULE__{state|rest: data}) do
-        %__MODULE__{data: data, rest: rest, position: position} ->
-          {data, rest, position}
-      end
-    decode_list(%__MODULE__{state|rest: rest, position: position}, [item|acc])
+  defp decode_list(%__MODULE__{rest: data} = state, acc) when data != "" do
+    case do_decode(%__MODULE__{state|rest: data}) do
+      %__MODULE__{data: data, rest: rest, position: position} ->
+        decode_list(%__MODULE__{state|rest: rest, position: position}, [data|acc])
+
+      {:error, _} = error ->
+        error
+    end
+  end
+  # errors
+  defp decode_list(%__MODULE__{rest: <<>>, position: position}, _) do
+    {:error, "Unexpected character at #{position}, expected data or an end character but got end of data"}
   end
 
   #=dictionaries -------------------------------------------------------

@@ -25,4 +25,14 @@ defmodule BencodeTest do
     assert reason =~ "at 2 "
     assert reason =~ "out of bounds"
   end
+
+  test "returning error tuples on faulty input containing lists with integers" do
+    {:error, reason} = Bencode.decode("li28e") # missing `e` at end of data
+    assert reason =~ "character at 5,"
+    assert reason =~ "end of data"
+
+    {:error, reason} = Bencode.decode("li42eiee")
+    assert reason =~ "Empty integer"
+    assert reason =~ "starting at 5"
+  end
 end
