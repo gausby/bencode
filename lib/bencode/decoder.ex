@@ -1,6 +1,7 @@
 defmodule Bencode.Decoder do
   defstruct(
     rest: "",
+    position: 0,
     checksum: nil,
     data: nil,
     opts: %{}
@@ -8,30 +9,48 @@ defmodule Bencode.Decoder do
 
   def decode(data) do
     case do_decode(%__MODULE__{rest: data}) do
-      %__MODULE__{data: nil} ->
-        {:error, "no data"}
-
       %__MODULE__{data: data, rest: ""} ->
         {:ok, data}
+
+      {:error, _} = error ->
+        error
     end
   end
 
   def decode_with_info_hash(data) do
     case do_decode(%__MODULE__{rest: data, opts: %{calculate_info_hash: true}}) do
-      %__MODULE__{data: nil} ->
-        {:error, "no data"}
-
       %__MODULE__{data: data, rest: "", checksum: checksum} ->
         {:ok, data, checksum}
+
+      {:error, _} = error ->
+        error
     end
   end
 
-  defp do_decode(%__MODULE__{rest: <<"i", data::binary>>} = state),
-    do: decode_integer(%__MODULE__{state|rest: data}, [])
-  defp do_decode(%__MODULE__{rest: <<"l", data::binary>>} = state),
-    do: decode_list(%__MODULE__{state|rest: data}, [])
-  defp do_decode(%__MODULE__{rest: <<"d", data::binary>>} = state),
-    do: decode_dictionary(%__MODULE__{state|rest: data}, %{})
+  # handle integers
+  defp do_decode(%__MODULE__{rest: <<"i", data::binary>>} = state) do
+    new_state =
+      %__MODULE__{
+        state|position: state.position + 1,
+              rest: data}
+    decode_integer(new_state, [])
+  end
+  # handle lists
+  defp do_decode(%__MODULE__{rest: <<"l", data::binary>>} = state) do
+    new_state =
+      %__MODULE__{
+        state|position: state.position + 1,
+              rest: data}
+    decode_list(new_state, [])
+  end
+  # handle dictionaries
+  defp do_decode(%__MODULE__{rest: <<"d", data::binary>>} = state) do
+    new_state =
+      %__MODULE__{
+        state|position: state.position + 1,
+              rest: data}
+    decode_dictionary(new_state, %{})
+  end
   # handle info dictionary, if present the checksum should get calculated
   # from the verbatim info data; not all benencoders are build the same
   defp do_decode(%__MODULE__{rest: <<"4:infod", data::binary>>, opts: %{calculate_info_hash: true}} = state) do
@@ -44,47 +63,78 @@ defmodule Bencode.Decoder do
     decode_string(%__MODULE__{state|checksum: checksum}, [])
   end
   # handle strings
-  defp do_decode(%__MODULE__{rest: <<first, _::binary>>} = state) when first in ?0..?9,
-    do: decode_string(state, [])
+  defp do_decode(%__MODULE__{rest: <<first, _::binary>>} = state) when first in ?0..?9 do
+    decode_string(state, [])
+  end
+  defp do_decode(%__MODULE__{rest: <<token, _::binary>>, position: position}) do
+    {:error, "unexpected token #{token} at #{position}"}
+  end
 
   #=integers -----------------------------------------------------------
-  defp decode_integer(%__MODULE__{rest: <<"e", rest::binary>>} = state, acc),
-    do: %__MODULE__{state|rest: rest, data: prepare_integer(acc)}
+  defp decode_integer(%__MODULE__{rest: <<"e", rest::binary>>} = state, acc) do
+    %__MODULE__{state|position: state.position + 1,
+                      rest: rest,
+                      data: prepare_integer(acc)}
+  end
   defp decode_integer(%__MODULE__{rest: <<current, rest::binary>>} = state, acc)
-  when current == ?- or current in ?0..?9,
-    do: decode_integer(%__MODULE__{state|rest: rest}, [current|acc])
+  when current == ?- or current in ?0..?9 do
+    new_state = %__MODULE__{state|position: state.position + 1, rest: rest}
+    decode_integer(new_state, [current|acc])
+  end
+  defp decode_integer(%__MODULE__{rest: <<token, _::binary>>, position: position}, _) do
+    {:error, "Unexpected token at #{position}, expected a number or an `e` but got #{token}"}
+  end
 
   #=strings ------------------------------------------------------------
   defp decode_string(%__MODULE__{rest: <<":", data::binary>>} = state, acc) do
     length = prepare_integer acc
-    <<string::size(length)-binary, rest::binary>> = data
-    %__MODULE__{state|rest: rest, data: string}
+    case data do
+      <<string::size(length)-binary, rest::binary>> ->
+        %__MODULE__{
+          state|position: state.position + 1 + length,
+                rest: rest,
+                data: string}
+
+      _ ->
+        {:error, "Expected a string of length #{length} at #{state.position + 1} but got out of bounds"}
+    end
   end
-  defp decode_string(%__MODULE__{rest: <<number, rest::binary>>} = state, acc)
-  when number in ?0..?9,
-    do: decode_string(%__MODULE__{state|rest: rest}, [number|acc])
+  defp decode_string(%__MODULE__{rest: <<number, rest::binary>>} = state, acc) when number in ?0..?9 do
+    new_state =
+      %__MODULE__{
+        state|position: state.position + 1,
+              rest: rest}
+    decode_string(new_state, [number|acc])
+  end
+  defp decode_string(%__MODULE__{rest: <<token, _::binary>>, position: position}, _) do
+    {:error, "Unexpected token at #{position}, expected a number or an `:` but got #{token}"}
+  end
 
   #=lists --------------------------------------------------------------
-  defp decode_list(%__MODULE__{rest: <<"e", rest::binary>>} = state, acc),
-    do: %__MODULE__{state|rest: rest, data: acc |> Enum.reverse}
+  defp decode_list(%__MODULE__{rest: <<"e", rest::binary>>} = state, acc) do
+    %__MODULE__{
+      state|position: state.position + 1,
+            rest: rest,
+            data: acc |> Enum.reverse}
+  end
   defp decode_list(%__MODULE__{rest: data} = state, acc) do
-    {item, rest} =
+    {item, rest, position} =
       case do_decode(%__MODULE__{state|rest: data}) do
-        %__MODULE__{data: data, rest: rest} ->
-          {data, rest}
+        %__MODULE__{data: data, rest: rest, position: position} ->
+          {data, rest, position}
       end
-    decode_list(%__MODULE__{state|rest: rest}, [item|acc])
+    decode_list(%__MODULE__{state|rest: rest, position: position}, [item|acc])
   end
 
   #=dictionaries -------------------------------------------------------
   defp decode_dictionary(%__MODULE__{rest: <<"e", rest::binary>>} = state, acc) do
-    %__MODULE__{state|rest: rest, data: acc}
+    %__MODULE__{state|position: state.position + 1, rest: rest, data: acc}
   end
   defp decode_dictionary(%__MODULE__{rest: rest} = state, acc) do
-    %__MODULE__{data: key, rest: rest, checksum: checksum} = do_decode(%__MODULE__{state|rest: rest})
-    %__MODULE__{data: value, rest: rest} = do_decode(%__MODULE__{state|rest: rest, checksum: checksum})
+    %__MODULE__{data: key, rest: rest, checksum: checksum, position: position} = do_decode(%__MODULE__{state|rest: rest})
+    %__MODULE__{data: value, rest: rest, position: position} = do_decode(%__MODULE__{state|rest: rest, checksum: checksum, position: position})
 
-    decode_dictionary(%__MODULE__{state|rest: rest, checksum: checksum}, Map.put_new(acc, key, value))
+    decode_dictionary(%__MODULE__{state|rest: rest, checksum: checksum, position: position}, Map.put_new(acc, key, value))
   end
 
   #=helpers ============================================================
