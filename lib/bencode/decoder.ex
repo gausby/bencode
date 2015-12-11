@@ -127,9 +127,8 @@ defmodule Bencode.Decoder do
   end
   defp decode_list(%__MODULE__{rest: data} = state, acc) when data != "" do
     case do_decode(%__MODULE__{state|rest: data}) do
-      %__MODULE__{data: data, rest: rest, position: position} ->
-        %__MODULE__{state|rest: rest, position: position}
-        |> decode_list([data|acc])
+      %__MODULE__{data: data} = new_state ->
+        decode_list(new_state, [data|acc])
 
       {:error, _} = error ->
         error
