@@ -148,9 +148,9 @@ defmodule Bencode.Decoder do
   end
   defp decode_dictionary(%__MODULE__{rest: rest} = state, acc) when rest != "" do
     with(
-      %__MODULE__{data: key, rest: rest, checksum: checksum, position: position} <- do_decode(%__MODULE__{state|rest: rest}),
-      %__MODULE__{data: value, rest: rest, position: position} <- do_decode(%__MODULE__{state|rest: rest, checksum: checksum, position: position}),
-      do: decode_dictionary(%__MODULE__{state|rest: rest, checksum: checksum, position: position}, Map.put_new(acc, key, value))
+      %__MODULE__{data: key} = state <- do_decode(state),
+      %__MODULE__{data: value} = state <- do_decode(state),
+      do: decode_dictionary(state, Map.put_new(acc, key, value))
     )
   end
   # errors
