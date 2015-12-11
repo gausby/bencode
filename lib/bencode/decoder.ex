@@ -170,9 +170,11 @@ defmodule Bencode.Decoder do
   end
 
   defp get_raw_source_data(data) do
-    {_, length} = do_scan(data, 0)
-    <<raw_info_directory::binary-size(length), _rest::binary>> = data
-    raw_info_directory
+    with(
+      {_, length} <- do_scan(data, 0),
+      <<raw_source_data::binary-size(length), _::binary>> <- data,
+      do: raw_source_data
+    )
   end
 
   #=scan ===============================================================
@@ -183,7 +185,7 @@ defmodule Bencode.Decoder do
   defp do_scan(<<"d", rest::binary>>, offset),
     do: do_scan_dictionary(rest, offset + 1)
   defp do_scan(<<first, _::binary>> = data, offset) when first in ?0..?9,
-    do: do_scan_string(data, [], offset)
+    do: do_scan_string(data, offset)
 
   # scan integers
   defp do_scan_integer(<<"e", rest::binary>>, offset),
@@ -192,6 +194,7 @@ defmodule Bencode.Decoder do
     do: do_scan_integer(rest, offset + 1)
 
   # scan strings
+  defp do_scan_string(data, acc \\ [], offset)
   defp do_scan_string(<<":", rest::binary>>, acc, offset) do
     length = prepare_integer(acc)
     <<_::binary-size(length), rest::binary>> = rest
@@ -212,8 +215,12 @@ defmodule Bencode.Decoder do
   defp do_scan_dictionary(<<"e", data::binary>>, offset),
     do: {data, offset + 1}
   defp do_scan_dictionary(data, offset) do
-    {rest, offset} = do_scan(data, offset) # scan key
-    {rest, offset} = do_scan(rest, offset) # scan value
-    do_scan_dictionary(rest, offset)
+    with(
+      # scan key
+      {rest, offset} <- do_scan_string(data, offset),
+      # scan value
+      {rest, offset} <- do_scan(rest, offset),
+      do: do_scan_dictionary(rest, offset)
+    )
   end
 end
