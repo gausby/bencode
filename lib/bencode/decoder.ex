@@ -64,10 +64,7 @@ defmodule Bencode.Decoder do
   # handle info dictionary, if present the checksum should get calculated
   # from the verbatim info data; not all benencoders are build the same
   defp do_decode(%__MODULE__{rest: <<"4:infod", data::binary>>, opts: %{calculate_info_hash: true}} = state) do
-    # consume entire info-dictionary
-    info_directory = "d" <> data
-    data_length = get_data_length(info_directory)
-    <<raw_info_directory::binary-size(data_length), _rest::binary>> = info_directory
+    raw_info_directory = get_raw_source_data("d" <> data)
     checksum = :crypto.hash(:sha, raw_info_directory)
     # continue parsing the string
     decode_string(%__MODULE__{state|checksum: checksum})
@@ -172,50 +169,51 @@ defmodule Bencode.Decoder do
     %__MODULE__{state|position: current + increment}
   end
 
-  #=consume ============================================================
-  defp get_data_length(data) do
-    {_, length} = do_consume(data, 0)
-    length
+  defp get_raw_source_data(data) do
+    {_, length} = do_scan(data, 0)
+    <<raw_info_directory::binary-size(length), _rest::binary>> = data
+    raw_info_directory
   end
 
-  defp do_consume(<<"i", rest::binary>>, offset),
-    do: do_consume_integer(rest, offset + 1)
-  defp do_consume(<<"l", rest::binary>>, offset),
-    do: do_consume_list(rest, offset + 1)
-  defp do_consume(<<"d", rest::binary>>, offset),
-    do: do_consume_dictionary(rest, offset + 1)
-  defp do_consume(<<first, _::binary>> = data, offset) when first in ?0..?9,
-    do: do_consume_string(data, [], offset)
+  #=scan ===============================================================
+  defp do_scan(<<"i", rest::binary>>, offset),
+    do: do_scan_integer(rest, offset + 1)
+  defp do_scan(<<"l", rest::binary>>, offset),
+    do: do_scan_list(rest, offset + 1)
+  defp do_scan(<<"d", rest::binary>>, offset),
+    do: do_scan_dictionary(rest, offset + 1)
+  defp do_scan(<<first, _::binary>> = data, offset) when first in ?0..?9,
+    do: do_scan_string(data, [], offset)
 
-  # consume integers
-  defp do_consume_integer(<<"e", rest::binary>>, offset),
+  # scan integers
+  defp do_scan_integer(<<"e", rest::binary>>, offset),
     do: {rest, offset + 1}
-  defp do_consume_integer(<<number, rest::binary>>, offset) when number in ?0..?9,
-    do: do_consume_integer(rest, offset + 1)
+  defp do_scan_integer(<<number, rest::binary>>, offset) when number in ?0..?9,
+    do: do_scan_integer(rest, offset + 1)
 
-  # consume strings
-  defp do_consume_string(<<":", rest::binary>>, acc, offset) do
+  # scan strings
+  defp do_scan_string(<<":", rest::binary>>, acc, offset) do
     length = prepare_integer(acc)
     <<_::binary-size(length), rest::binary>> = rest
     {rest, offset + length + 1}
   end
-  defp do_consume_string(<<number, rest::binary>>, acc, offset) when number in ?0..?9,
-    do: do_consume_string(rest, [number|acc], offset + 1)
+  defp do_scan_string(<<number, rest::binary>>, acc, offset) when number in ?0..?9,
+    do: do_scan_string(rest, [number|acc], offset + 1)
 
-  # consume lists
-  defp do_consume_list(<<"e", rest::binary>>, offset),
+  # scan lists
+  defp do_scan_list(<<"e", rest::binary>>, offset),
     do: {rest, offset + 1}
-  defp do_consume_list(data, offset) do
-    {rest, offset} = do_consume(data, offset)
-    do_consume_list(rest, offset)
+  defp do_scan_list(data, offset) do
+    {rest, offset} = do_scan(data, offset)
+    do_scan_list(rest, offset)
   end
 
-  # consume dictionary
-  defp do_consume_dictionary(<<"e", data::binary>>, offset),
+  # scan dictionary
+  defp do_scan_dictionary(<<"e", data::binary>>, offset),
     do: {data, offset + 1}
-  defp do_consume_dictionary(data, offset) do
-    {rest, offset} = do_consume(data, offset) # consume key
-    {rest, offset} = do_consume(rest, offset) # consume value
-    do_consume_dictionary(rest, offset)
+  defp do_scan_dictionary(data, offset) do
+    {rest, offset} = do_scan(data, offset) # scan key
+    {rest, offset} = do_scan(rest, offset) # scan value
+    do_scan_dictionary(rest, offset)
   end
 end
