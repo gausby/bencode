@@ -45,27 +45,18 @@ defmodule Bencode.Decoder do
 
   # handle integers
   defp do_decode(%__MODULE__{rest: <<"i", data::binary>>} = state) do
-    new_state =
-      %__MODULE__{
-        state|position: state.position + 1,
-              rest: data}
-    decode_integer(new_state, [])
+    %__MODULE__{state|position: state.position + 1, rest: data}
+    |> decode_integer
   end
   # handle lists
   defp do_decode(%__MODULE__{rest: <<"l", data::binary>>} = state) do
-    new_state =
-      %__MODULE__{
-        state|position: state.position + 1,
-              rest: data}
-    decode_list(new_state, [])
+    %__MODULE__{state|position: state.position + 1, rest: data}
+    |> decode_list
   end
   # handle dictionaries
   defp do_decode(%__MODULE__{rest: <<"d", data::binary>>} = state) do
-    new_state =
-      %__MODULE__{
-        state|position: state.position + 1,
-              rest: data}
-    decode_dictionary(new_state, %{})
+    %__MODULE__{state|position: state.position + 1, rest: data}
+    |> decode_dictionary
   end
   # handle info dictionary, if present the checksum should get calculated
   # from the verbatim info data; not all benencoders are build the same
@@ -76,11 +67,11 @@ defmodule Bencode.Decoder do
     <<raw_info_directory::binary-size(data_length), _rest::binary>> = info_directory
     checksum = :crypto.hash(:sha, raw_info_directory)
     # continue parsing the string
-    decode_string(%__MODULE__{state|checksum: checksum}, [])
+    decode_string(%__MODULE__{state|checksum: checksum})
   end
   # handle strings
   defp do_decode(%__MODULE__{rest: <<first, _::binary>>} = state) when first in ?0..?9 do
-    decode_string(state, [])
+    decode_string(state)
   end
   defp do_decode(%__MODULE__{rest: <<char, _::binary>>, position: position}) do
     {:error, "unexpected character at #{position}, expected a string; an integer; a list; or a dictionary, got: #{[char]}"}
@@ -90,6 +81,7 @@ defmodule Bencode.Decoder do
     do: state
 
   #=integers -----------------------------------------------------------
+  defp decode_integer(state, acc \\ [])
   defp decode_integer(%__MODULE__{rest: <<"e", rest::binary>>} = state, acc) when length(acc) > 0 do
     %__MODULE__{state|position: state.position + 1,
                       rest: rest,
@@ -106,6 +98,7 @@ defmodule Bencode.Decoder do
     do: {:error, "unexpected character at #{position}, expected a number or an `e`, got: #{[char]}"}
 
   #=strings ------------------------------------------------------------
+  defp decode_string(state, acc \\ [])
   defp decode_string(%__MODULE__{rest: <<":", data::binary>>} = state, acc) do
     length = prepare_integer acc
     case data do
@@ -131,6 +124,7 @@ defmodule Bencode.Decoder do
   end
 
   #=lists --------------------------------------------------------------
+  defp decode_list(state, acc \\ [])
   defp decode_list(%__MODULE__{rest: <<"e", rest::binary>>} = state, acc) do
     %__MODULE__{
       state|position: state.position + 1,
@@ -152,6 +146,7 @@ defmodule Bencode.Decoder do
   end
 
   #=dictionaries -------------------------------------------------------
+  defp decode_dictionary(state, acc \\ %{})
   defp decode_dictionary(%__MODULE__{rest: <<"e", rest::binary>>} = state, acc) do
     %__MODULE__{state|position: state.position + 1, rest: rest, data: acc}
   end
