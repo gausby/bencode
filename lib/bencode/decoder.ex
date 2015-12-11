@@ -45,17 +45,20 @@ defmodule Bencode.Decoder do
 
   # handle integers
   defp do_decode(%__MODULE__{rest: <<"i", data::binary>>} = state) do
-    %__MODULE__{state|position: state.position + 1, rest: data}
+    %__MODULE__{state|rest: data}
+    |> advance_position
     |> decode_integer
   end
   # handle lists
   defp do_decode(%__MODULE__{rest: <<"l", data::binary>>} = state) do
-    %__MODULE__{state|position: state.position + 1, rest: data}
+    %__MODULE__{state|rest: data}
+    |> advance_position
     |> decode_list
   end
   # handle dictionaries
   defp do_decode(%__MODULE__{rest: <<"d", data::binary>>} = state) do
-    %__MODULE__{state|position: state.position + 1, rest: data}
+    %__MODULE__{state|rest: data}
+    |> advance_position
     |> decode_dictionary
   end
   # handle info dictionary, if present the checksum should get calculated
@@ -83,13 +86,13 @@ defmodule Bencode.Decoder do
   #=integers -----------------------------------------------------------
   defp decode_integer(state, acc \\ [])
   defp decode_integer(%__MODULE__{rest: <<"e", rest::binary>>} = state, acc) when length(acc) > 0 do
-    %__MODULE__{state|position: state.position + 1,
-                      rest: rest,
-                      data: prepare_integer(acc)}
+    %__MODULE__{state|rest: rest, data: prepare_integer(acc)}
+    |> advance_position
   end
   defp decode_integer(%__MODULE__{rest: <<current, rest::binary>>} = state, acc) when current == ?- or current in ?0..?9 do
-    new_state = %__MODULE__{state|position: state.position + 1, rest: rest}
-    decode_integer(new_state, [current|acc])
+    %__MODULE__{state|rest: rest}
+    |> advance_position
+    |> decode_integer([current|acc])
   end
   # errors
   defp decode_integer(%__MODULE__{rest: <<"e", _::binary>>} = state, []),
@@ -103,21 +106,17 @@ defmodule Bencode.Decoder do
     length = prepare_integer acc
     case data do
       <<string::size(length)-binary, rest::binary>> ->
-        %__MODULE__{
-          state|position: state.position + 1 + length,
-                rest: rest,
-                data: string}
+        %__MODULE__{state|rest: rest,data: string}
+        |> advance_position(1 + length)
 
       _ ->
         {:error, "expected a string of length #{length} at #{state.position + 1} but got out of bounds"}
     end
   end
   defp decode_string(%__MODULE__{rest: <<number, rest::binary>>} = state, acc) when number in ?0..?9 do
-    new_state =
-      %__MODULE__{
-        state|position: state.position + 1,
-              rest: rest}
-    decode_string(new_state, [number|acc])
+    %__MODULE__{state|rest: rest}
+    |> advance_position
+    |> decode_string([number|acc])
   end
   defp decode_string(%__MODULE__{rest: <<char, _::binary>>, position: position}, _) do
     {:error, "unexpected character at #{position}, expected a number or an `:`, got: #{[char]}"}
@@ -126,15 +125,14 @@ defmodule Bencode.Decoder do
   #=lists --------------------------------------------------------------
   defp decode_list(state, acc \\ [])
   defp decode_list(%__MODULE__{rest: <<"e", rest::binary>>} = state, acc) do
-    %__MODULE__{
-      state|position: state.position + 1,
-            rest: rest,
-            data: acc |> Enum.reverse}
+    %__MODULE__{state|rest: rest, data: acc |> Enum.reverse}
+    |> advance_position
   end
   defp decode_list(%__MODULE__{rest: data} = state, acc) when data != "" do
     case do_decode(%__MODULE__{state|rest: data}) do
       %__MODULE__{data: data, rest: rest, position: position} ->
-        decode_list(%__MODULE__{state|rest: rest, position: position}, [data|acc])
+        %__MODULE__{state|rest: rest, position: position}
+        |> decode_list([data|acc])
 
       {:error, _} = error ->
         error
@@ -148,7 +146,8 @@ defmodule Bencode.Decoder do
   #=dictionaries -------------------------------------------------------
   defp decode_dictionary(state, acc \\ %{})
   defp decode_dictionary(%__MODULE__{rest: <<"e", rest::binary>>} = state, acc) do
-    %__MODULE__{state|position: state.position + 1, rest: rest, data: acc}
+    %__MODULE__{state|rest: rest, data: acc}
+    |> advance_position
   end
   defp decode_dictionary(%__MODULE__{rest: rest} = state, acc) when rest != "" do
     with(
@@ -167,6 +166,10 @@ defmodule Bencode.Decoder do
     list
     |> Enum.reverse
     |> List.to_integer
+  end
+
+  defp advance_position(%__MODULE__{position: current} = state, increment \\ 1) do
+    %__MODULE__{state|position: current + increment}
   end
 
   #=consume ============================================================
