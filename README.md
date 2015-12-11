@@ -14,7 +14,7 @@ A Bencode encoder and decoder for Elixir. The decoder will return the checksum v
 
 ## Installation
 
-Bencode is [available in Hex](https://hex.pm/bencode), and can be installed by adding it to the list of  dependencies in `mix.exs`:
+Bencode is [available in Hex](https://hex.pm/packages/bencode), and can be installed by adding it to the list of  dependencies in `mix.exs`:
 
 ``` elixir
   def deps do
