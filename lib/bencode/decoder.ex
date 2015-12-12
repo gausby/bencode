@@ -1,10 +1,12 @@
 defmodule Bencode.Decoder do
+  alias Bencode.Decoder.Options
+
   defstruct(
     rest: "",
     position: 0,
     checksum: nil,
     data: nil,
-    opts: %{}
+    opts: %Options{}
   )
 
   def decode(data) do
@@ -31,7 +33,7 @@ defmodule Bencode.Decoder do
   end
 
   def decode_with_info_hash(data) do
-    case do_decode(%__MODULE__{rest: data, opts: %{calculate_info_hash: true}}) do
+    case do_decode(%__MODULE__{rest: data, opts: %Options{calculate_info_hash: true}}) do
       %__MODULE__{data: data, rest: "", checksum: checksum} ->
         {:ok, data, checksum}
 
