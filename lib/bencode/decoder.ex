@@ -64,10 +64,17 @@ defmodule Bencode.Decoder do
   # handle info dictionary, if present the checksum should get calculated
   # from the verbatim info data; not all benencoders are build the same
   defp do_decode(%__MODULE__{rest: <<"4:infod", data::binary>>, opts: %{calculate_info_hash: true}} = state) do
-    raw_info_directory = get_raw_source_data("d" <> data)
-    checksum = :crypto.hash(:sha, raw_info_directory)
-    # continue parsing the string
-    decode_string(%__MODULE__{state|checksum: checksum})
+    case get_raw_source_data("d" <> data) do
+      {:ok, raw_info_directory} ->
+        checksum = :crypto.hash(:sha, raw_info_directory)
+        # continue parsing the string
+        decode_string(%__MODULE__{state|checksum: checksum})
+
+      {:error, _} ->
+        # the data is faulty, but we still attempt to decode it to get the
+        # exact reason for the failure using the regular parser
+        decode_string(state)
+    end
   end
   # handle strings
   defp do_decode(%__MODULE__{rest: <<first, _::binary>>} = state) when first in ?0..?9 do
@@ -167,9 +174,9 @@ defmodule Bencode.Decoder do
 
   defp get_raw_source_data(data) do
     with(
-      {_, length} <- do_scan(data, 0),
+      {:ok, _, length} <- do_scan(data, 0),
       <<raw_source_data::binary-size(length), _::binary>> <- data,
-      do: raw_source_data
+      do: {:ok, raw_source_data}
     )
   end
 
@@ -182,41 +189,59 @@ defmodule Bencode.Decoder do
     do: do_scan_dictionary(rest, offset + 1)
   defp do_scan(<<first, _::binary>> = data, offset) when first in ?0..?9,
     do: do_scan_string(data, offset)
+  defp do_scan(_, _),
+    do: {:error, "faulty info dictionary"}
 
   # scan integers
   defp do_scan_integer(<<"e", rest::binary>>, offset),
-    do: {rest, offset + 1}
+    do: {:ok, rest, offset + 1}
   defp do_scan_integer(<<number, rest::binary>>, offset) when number in ?0..?9,
     do: do_scan_integer(rest, offset + 1)
+  defp do_scan_integer(_, _offset),
+    do: {:error, "faulty info dictionary"}
 
   # scan strings
   defp do_scan_string(data, acc \\ [], offset)
-  defp do_scan_string(<<":", rest::binary>>, acc, offset) do
+  defp do_scan_string(<<":", data::binary>>, acc, offset) do
     length = prepare_integer(acc)
-    <<_::binary-size(length), rest::binary>> = rest
-    {rest, offset + length + 1}
+    case data do
+      <<_::size(length)-binary, rest::binary>> ->
+        {:ok, rest, offset + length + 1}
+
+      _ ->
+        {:error, "faulty info dictionary"}
+    end
   end
   defp do_scan_string(<<number, rest::binary>>, acc, offset) when number in ?0..?9,
     do: do_scan_string(rest, [number|acc], offset + 1)
+  defp do_scan_string(_, _acc, _offset),
+    do: {:error, "faulty info dictionary"}
 
   # scan lists
   defp do_scan_list(<<"e", rest::binary>>, offset),
-    do: {rest, offset + 1}
-  defp do_scan_list(data, offset) do
-    {rest, offset} = do_scan(data, offset)
-    do_scan_list(rest, offset)
+    do: {:ok, rest, offset + 1}
+  defp do_scan_list(data, offset) when data != "" do
+    with(
+      {:ok, rest, offset} <- do_scan(data, offset),
+      do: do_scan_list(rest, offset)
+    )
   end
+  defp do_scan_list(<<>>, _offset),
+    do: {:error, "faulty info dictionary"}
 
   # scan dictionary
   defp do_scan_dictionary(<<"e", data::binary>>, offset),
-    do: {data, offset + 1}
-  defp do_scan_dictionary(data, offset) do
+    do: {:ok, data, offset + 1}
+  defp do_scan_dictionary(data, offset) when data != "" do
     with(
       # scan key
-      {rest, offset} <- do_scan_string(data, offset),
+      {:ok, rest, offset} <- do_scan(data, offset),
       # scan value
-      {rest, offset} <- do_scan(rest, offset),
+      {:ok, rest, offset} <- do_scan(rest, offset),
       do: do_scan_dictionary(rest, offset)
     )
   end
+  defp do_scan_dictionary(<<>>, _offset),
+    do: {:error, "faulty info dictionary"}
+
 end

@@ -68,4 +68,33 @@ defmodule BencodeTest do
   test "empty data should return nil" do
     assert {:ok, nil} = Bencode.decode("")
   end
+
+  defp info_wrap(data),
+    do: "d4:infod#{data}ee"
+
+  test "faulty data inside info dictionaries when scanning for length" do
+    # failure in integers
+    assert {:error, _} = Bencode.decode_with_info_hash(info_wrap("3:fooi4_e"))
+
+    # failure in strings
+    assert {:error, _} = Bencode.decode_with_info_hash(info_wrap("3:foo2:bar"))
+    assert {:error, _} = Bencode.decode_with_info_hash(info_wrap("3:foo14:bar"))
+
+    # failure in dictionaries
+    # - faulty key
+    assert {:error, _} = Bencode.decode_with_info_hash(info_wrap("3:food4:bar3:baze"))
+    assert {:error, _} = Bencode.decode_with_info_hash(info_wrap("3:food40:bar3:baze"))
+    # - faulty value, strings
+    assert {:error, _} = Bencode.decode_with_info_hash(info_wrap("3:food3:bar2:baze"))
+    assert {:error, _} = Bencode.decode_with_info_hash(info_wrap("3:food3:bar30:baze"))
+    # - faulty value, integers
+    assert {:error, _} = Bencode.decode_with_info_hash(info_wrap("3:food3:bari4_ee"))
+    assert {:error, _} = Bencode.decode_with_info_hash(info_wrap("3:food3:bariee"))
+
+    # faulty in lists
+    # - faulty value, integers
+    assert {:error, _} = Bencode.decode_with_info_hash(info_wrap("3:fooli4_ee"))
+    # - faulty value, strings
+    assert {:error, _} = Bencode.decode_with_info_hash(info_wrap("3:fool30:bare"))
+  end
 end
