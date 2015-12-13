@@ -2,6 +2,11 @@ defprotocol Bencode.Encoder do
   def encode(data)
 end
 
+defimpl Bencode.Encoder, for: Atom do
+  def encode(atom),
+    do: Bencode.Encoder.encode(to_string(atom))
+end
+
 defimpl Bencode.Encoder, for: Integer do
   def encode(number),
     do: "i#{number}e"
