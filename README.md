@@ -1,6 +1,10 @@
 # Bencode
 
-A Bencode encoder and decoder for Elixir. The decoder will return the checksum value of the `info` dictionary, if an `info` dictionary was found in the input.
+A Bencode encoder and decoder for Elixir.
+
+The encoder is implemented as a protocol, allowing implementations for custom structs.
+
+The decoder should handle malformed data, either by raising an error, or returning an 2-tuple with status, both containing detailed information about the error. The decoder is also capable of calculating the hash of the info dictionary.
 
 ## API
 
