@@ -5,13 +5,13 @@ defmodule BencodeEQC do
   # numbers
   property "encode numbers" do
     forall input <- int do
-      ensure Bencode.encode(input) == "i#{input}e"
+      ensure Bencode.encode!(input) == "i#{input}e"
     end
   end
 
   property "encode strings" do
     forall input <- utf8 do
-      ensure Bencode.encode(input) == "#{byte_size input}:#{input}"
+      ensure Bencode.encode!(input) == "#{byte_size input}:#{input}"
     end
   end
 
@@ -37,7 +37,7 @@ defmodule BencodeEQC do
 
   property "lists" do
     forall input <- list(int) do
-      encoded_input = Bencode.encode(input)
+      encoded_input = Bencode.encode!(input)
       {:ok, decoded_result} = Bencode.decode(encoded_input)
       ensure decoded_result == input
     end
@@ -45,7 +45,7 @@ defmodule BencodeEQC do
 
   property "maps" do
     forall input <- map(utf8, int) do
-      encoded_input = Bencode.encode(input)
+      encoded_input = Bencode.encode!(input)
       {:ok, decoded_result} = Bencode.decode(encoded_input)
       ensure decoded_result == input
     end
@@ -54,7 +54,7 @@ defmodule BencodeEQC do
   # ints
   property "Output of encoding ints followed by a decode should result in the input" do
     forall input <- int do
-      encoded_input = Bencode.encode(input)
+      encoded_input = Bencode.encode!(input)
       {:ok, decoded_result} = Bencode.decode(encoded_input)
       ensure decoded_result == input
     end
@@ -62,7 +62,7 @@ defmodule BencodeEQC do
 
   property "Output of encoding lists of ints followed by a decode should result in the input" do
     forall input <- list(int) do
-      encoded_input = Bencode.encode(input)
+      encoded_input = Bencode.encode!(input)
       {:ok, decoded_result} = Bencode.decode(encoded_input)
       ensure decoded_result == input
     end
@@ -72,7 +72,7 @@ defmodule BencodeEQC do
 
   property "Encoding strings followed by a decode should result in the input" do
     forall input <- utf8 do
-      encoded_input = Bencode.encode(input)
+      encoded_input = Bencode.encode!(input)
       {:ok, decoded_result} = Bencode.decode(encoded_input)
       ensure decoded_result == input
     end
@@ -80,7 +80,7 @@ defmodule BencodeEQC do
 
   property "Encoding lists of strings followed by a decode should result in the input" do
     forall input <- list(utf8) do
-      encoded_input = Bencode.encode(input)
+      encoded_input = Bencode.encode!(input)
       {:ok, decoded_result} = Bencode.decode(encoded_input)
       ensure decoded_result == input
     end
@@ -88,7 +88,7 @@ defmodule BencodeEQC do
 
   property "Encoded maps should decode to the input" do
     forall input <- map(utf8, utf8) do
-      encoded_input = Bencode.encode(input)
+      encoded_input = Bencode.encode!(input)
       {:ok, decoded_result} = Bencode.decode(encoded_input)
       ensure decoded_result == input
     end
@@ -117,7 +117,7 @@ defmodule BencodeEQC do
                 {1, map(utf8, frequency([{1, utf8}, {1, int}]))}]))}])
 
     forall input <- structure do
-      encoded_input = Bencode.encode(input)
+      encoded_input = Bencode.encode!(input)
       {:ok, decoded_result} = Bencode.decode(encoded_input)
       ensure decoded_result == input
     end

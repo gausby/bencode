@@ -4,7 +4,7 @@ defmodule BencodeTest do
 
   test "calculate checksum of info directory when decoding" do
     input = %{"info" => %{"foo" => "bar"}}
-    {:ok, data, checksum} = Bencode.decode_with_info_hash(Bencode.encode(input))
+    {:ok, data, checksum} = Bencode.decode_with_info_hash(Bencode.encode!(input))
     assert data == input
     assert checksum == <<109, 34, 98, 18, 111, 235, 110, 199, 189, 52, 100, 147, 80, 37, 200, 198, 9, 192, 17, 157>>
   end
@@ -96,5 +96,13 @@ defmodule BencodeTest do
     assert {:error, _} = Bencode.decode_with_info_hash(info_wrap("3:fooli4_ee"))
     # - faulty value, strings
     assert {:error, _} = Bencode.decode_with_info_hash(info_wrap("3:fool30:bare"))
+  end
+
+  defmodule CustomStructTest do
+    defstruct foo: nil
+  end
+  test "should return an error-tuple if unknown structs are encoded" do
+    err = "protocol Bencode.Encoder is not implemented for %BencodeTest.CustomStructTest{foo: \"bar\"}"
+    assert {:error, err} == Bencode.encode(%__MODULE__.CustomStructTest{foo: "bar"})
   end
 end

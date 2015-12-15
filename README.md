@@ -8,7 +8,9 @@ The decoder should handle malformed data, either by raising an error, or returni
 
 ## API
 
-* `Bencode.encode/1` will encode a given data structure to the b-code representation.
+* `Bencode.encode/1` will encode a given data structure to the b-code representation and return a `{:ok, data}`-tuple on success, or an `{:error, reason}`-tuple if the data was invalid.
+
+* `Bencode.encode!/1` will encode a given data structure to the b-code representation; it will raise an error if the given input is invalid.
 
 * `Bencode.decode/1` will decode a b-code encoded string and return a 2-tuple; containing the status (`:ok`) and its Elixir data structure representation. Should the data be invalid a 2-tuple will get returned with `{:error, reason}`
 
