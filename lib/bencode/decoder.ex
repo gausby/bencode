@@ -1,4 +1,5 @@
 defmodule Bencode.Decoder do
+  alias Bencode.Decoder.Error
   alias Bencode.Decoder.Options
 
   defstruct(
@@ -8,13 +9,14 @@ defmodule Bencode.Decoder do
     data: nil,
     opts: %Options{}
   )
+  alias Bencode.Decoder, as: State
 
   def decode(data) do
-    case do_decode(%__MODULE__{rest: data}) do
-      %__MODULE__{data: data, rest: ""} ->
+    case do_decode(%State{rest: data}) do
+      %State{data: data, rest: ""} ->
         {:ok, data}
 
-      %__MODULE__{rest: <<char, _::binary>>, position: position} ->
+      %State{rest: <<char, _::binary>>, position: position} ->
         {:error, "unexpected character at #{position}, expected no more data, got: #{[char]}"}
 
       {:error, _} = error ->
@@ -28,16 +30,16 @@ defmodule Bencode.Decoder do
         result
 
       {:error, reason} ->
-        raise Bencode.Decoder.Error, reason: reason, action: "decode data", data: data
+        raise Error, reason: reason, action: "decode data", data: data
     end
   end
 
   def decode_with_info_hash(data) do
-    case do_decode(%__MODULE__{rest: data, opts: %Options{calculate_info_hash: true}}) do
-      %__MODULE__{data: data, rest: "", checksum: checksum} ->
+    case do_decode(%State{rest: data, opts: %Options{calculate_info_hash: true}}) do
+      %State{data: data, rest: "", checksum: checksum} ->
         {:ok, data, checksum}
 
-      %__MODULE__{rest: <<char, _::binary>>, position: position} ->
+      %State{rest: <<char, _::binary>>, position: position} ->
         {:error, "unexpected character at #{position}, expected no more data, got: #{[char]}"}
 
       {:error, _} = error ->
@@ -46,31 +48,31 @@ defmodule Bencode.Decoder do
   end
 
   # handle integers
-  defp do_decode(%__MODULE__{rest: <<"i", data::binary>>} = state) do
-    %__MODULE__{state|rest: data}
+  defp do_decode(%State{rest: <<"i", data::binary>>} = state) do
+    %State{state|rest: data}
     |> advance_position
     |> decode_integer
   end
   # handle lists
-  defp do_decode(%__MODULE__{rest: <<"l", data::binary>>} = state) do
-    %__MODULE__{state|rest: data}
+  defp do_decode(%State{rest: <<"l", data::binary>>} = state) do
+    %State{state|rest: data}
     |> advance_position
     |> decode_list
   end
   # handle dictionaries
-  defp do_decode(%__MODULE__{rest: <<"d", data::binary>>} = state) do
-    %__MODULE__{state|rest: data}
+  defp do_decode(%State{rest: <<"d", data::binary>>} = state) do
+    %State{state|rest: data}
     |> advance_position
     |> decode_dictionary
   end
   # handle info dictionary, if present the checksum should get calculated
   # from the verbatim info data; not all benencoders are build the same
-  defp do_decode(%__MODULE__{rest: <<"4:infod", data::binary>>, opts: %{calculate_info_hash: true}} = state) do
+  defp do_decode(%State{rest: <<"4:infod", data::binary>>, opts: %{calculate_info_hash: true}} = state) do
     case get_raw_source_data("d" <> data) do
       {:ok, raw_info_directory} ->
         checksum = :crypto.hash(:sha, raw_info_directory)
         # continue parsing the string
-        decode_string(%__MODULE__{state|checksum: checksum})
+        decode_string(%State{state|checksum: checksum})
 
       {:error, _} ->
         # the data is faulty, but we still attempt to decode it to get the
@@ -79,87 +81,87 @@ defmodule Bencode.Decoder do
     end
   end
   # handle strings
-  defp do_decode(%__MODULE__{rest: <<first, _::binary>>} = state) when first in ?0..?9 do
+  defp do_decode(%State{rest: <<first, _::binary>>} = state) when first in ?0..?9 do
     decode_string(state)
   end
-  defp do_decode(%__MODULE__{rest: <<char, _::binary>>, position: position}) do
+  defp do_decode(%State{rest: <<char, _::binary>>, position: position}) do
     {:error, "unexpected character at #{position}, expected a string; an integer; a list; or a dictionary, got: #{[char]}"}
   end
   # handle empty strings
-  defp do_decode(%__MODULE__{rest: <<>>} = state),
+  defp do_decode(%State{rest: <<>>} = state),
     do: state
 
   #=integers -----------------------------------------------------------
   defp decode_integer(state, acc \\ [])
-  defp decode_integer(%__MODULE__{rest: <<"e", rest::binary>>} = state, acc) when length(acc) > 0 do
-    %__MODULE__{state|rest: rest, data: prepare_integer(acc)}
+  defp decode_integer(%State{rest: <<"e", rest::binary>>} = state, acc) when length(acc) > 0 do
+    %State{state|rest: rest, data: prepare_integer(acc)}
     |> advance_position
   end
-  defp decode_integer(%__MODULE__{rest: <<current, rest::binary>>} = state, acc) when current == ?- or current in ?0..?9 do
-    %__MODULE__{state|rest: rest}
+  defp decode_integer(%State{rest: <<current, rest::binary>>} = state, acc) when current == ?- or current in ?0..?9 do
+    %State{state|rest: rest}
     |> advance_position
     |> decode_integer([current|acc])
   end
   # errors
-  defp decode_integer(%__MODULE__{rest: <<"e", _::binary>>} = state, []),
+  defp decode_integer(%State{rest: <<"e", _::binary>>} = state, []),
     do: {:error, "empty integer starting at #{state.position - 1}"}
-  defp decode_integer(%__MODULE__{rest: <<char, _::binary>>, position: position}, _),
+  defp decode_integer(%State{rest: <<char, _::binary>>, position: position}, _),
     do: {:error, "unexpected character at #{position}, expected a number or an `e`, got: #{[char]}"}
 
   #=strings ------------------------------------------------------------
   defp decode_string(state, acc \\ [])
-  defp decode_string(%__MODULE__{rest: <<":", data::binary>>} = state, acc) do
+  defp decode_string(%State{rest: <<":", data::binary>>} = state, acc) do
     length = prepare_integer acc
     case data do
       <<string::size(length)-binary, rest::binary>> ->
-        %__MODULE__{state|rest: rest,data: string}
+        %State{state|rest: rest,data: string}
         |> advance_position(1 + length)
 
       _ ->
         {:error, "expected a string of length #{length} at #{state.position + 1} but got out of bounds"}
     end
   end
-  defp decode_string(%__MODULE__{rest: <<number, rest::binary>>} = state, acc) when number in ?0..?9 do
-    %__MODULE__{state|rest: rest}
+  defp decode_string(%State{rest: <<number, rest::binary>>} = state, acc) when number in ?0..?9 do
+    %State{state|rest: rest}
     |> advance_position
     |> decode_string([number|acc])
   end
-  defp decode_string(%__MODULE__{rest: <<char, _::binary>>, position: position}, _) do
+  defp decode_string(%State{rest: <<char, _::binary>>, position: position}, _) do
     {:error, "unexpected character at #{position}, expected a number or an `:`, got: #{[char]}"}
   end
 
   #=lists --------------------------------------------------------------
   defp decode_list(state, acc \\ [])
-  defp decode_list(%__MODULE__{rest: <<"e", rest::binary>>} = state, acc) do
-    %__MODULE__{state|rest: rest, data: acc |> Enum.reverse}
+  defp decode_list(%State{rest: <<"e", rest::binary>>} = state, acc) do
+    %State{state|rest: rest, data: acc |> Enum.reverse}
     |> advance_position
   end
-  defp decode_list(%__MODULE__{rest: data} = state, acc) when data != "" do
+  defp decode_list(%State{rest: data} = state, acc) when data != "" do
     with(
-      %__MODULE__{data: list_item} = new_state <- do_decode(state),
+      %State{data: list_item} = new_state <- do_decode(state),
       do: decode_list(new_state, [list_item|acc])
     )
   end
   # errors
-  defp decode_list(%__MODULE__{rest: <<>>, position: position}, _) do
+  defp decode_list(%State{rest: <<>>, position: position}, _) do
     {:error, "unexpected character at #{position}, expected data or an end character, got end of data"}
   end
 
   #=dictionaries -------------------------------------------------------
   defp decode_dictionary(state, acc \\ %{})
-  defp decode_dictionary(%__MODULE__{rest: <<"e", rest::binary>>} = state, acc) do
-    %__MODULE__{state|rest: rest, data: acc}
+  defp decode_dictionary(%State{rest: <<"e", rest::binary>>} = state, acc) do
+    %State{state|rest: rest, data: acc}
     |> advance_position
   end
-  defp decode_dictionary(%__MODULE__{rest: rest} = state, acc) when rest != "" do
+  defp decode_dictionary(%State{rest: rest} = state, acc) when rest != "" do
     with(
-      %__MODULE__{data: key} = state <- do_decode(state),
-      %__MODULE__{data: value} = state <- do_decode(state),
+      %State{data: key} = state <- do_decode(state),
+      %State{data: value} = state <- do_decode(state),
       do: decode_dictionary(state, Map.put_new(acc, key, value))
     )
   end
   # errors
-  defp decode_dictionary(%__MODULE__{rest: <<>>, position: position}, _) do
+  defp decode_dictionary(%State{rest: <<>>, position: position}, _) do
     {:error, "unexpected character at #{position}, expected data or an end character, got end of data"}
   end
 
@@ -170,8 +172,8 @@ defmodule Bencode.Decoder do
     |> List.to_integer
   end
 
-  defp advance_position(%__MODULE__{position: current} = state, increment \\ 1) do
-    %__MODULE__{state|position: current + increment}
+  defp advance_position(%State{position: current} = state, increment \\ 1) do
+    %State{state|position: current + increment}
   end
 
   defp get_raw_source_data(data) do
