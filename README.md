@@ -41,7 +41,7 @@ Notice that there are other bencode implementations on [hex](https://hex.pm/). P
 
 ## License
 
-Copyright 2015 Martin Gausby
+Copyright 2016 Martin Gausby
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
