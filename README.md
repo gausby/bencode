@@ -2,6 +2,7 @@
 
 [![Hex.pm](https://img.shields.io/hexpm/l/bencode.svg "Apache 2.0 Licensed")](https://github.com/gausby/bencode/blob/master/LICENSE)
 [![Hex version](https://img.shields.io/hexpm/v/bencode.svg "Hex version")](https://hex.pm/packages/bencode)
+[<img src="http://quickcheck-ci.com/p/gausby/bencode.png" alt="QuickCheck CI Status" width="100px" height="18px">](http://quickcheck-ci.com/p/gausby/bencode)
 
 A Bencode encoder and decoder for Elixir.
 
