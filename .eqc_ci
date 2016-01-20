@@ -1,0 +1,3 @@
+{build, "MIX_ENV=test mix deps.get; MIX_ENV=test mix eqcCI"}.
+{test_path, "_build/test/lib/bencode/ebin"}.
+{deps, "_build/test/lib/eqc_ex/ebin"}.
