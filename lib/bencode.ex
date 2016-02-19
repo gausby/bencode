@@ -22,7 +22,7 @@ defmodule Bencode do
   defdelegate decode(data),
     to: Bencode.Decoder
 
-  @spec decode!(binary) :: encodable | {:error, binary}
+  @spec decode!(binary) :: encodable | no_return
   defdelegate decode!(data),
     to: Bencode.Decoder
 
