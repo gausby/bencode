@@ -18,7 +18,7 @@ defmodule Bencode do
   defdelegate encode!(data),
     to: Bencode.Encoder
 
-  @spec decode(binary) :: encodable | {:error, binary}
+  @spec decode(binary) :: {:ok, encodable} | {:error, binary}
   defdelegate decode(data),
     to: Bencode.Decoder
 
