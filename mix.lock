@@ -1,1 +1,3 @@
-%{"eqc_ex": {:hex, :eqc_ex, "1.2.4"}}
+%{"bunt": {:hex, :bunt, "0.1.5"},
+  "credo": {:hex, :credo, "0.3.3"},
+  "eqc_ex": {:hex, :eqc_ex, "1.2.4"}}

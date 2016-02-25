@@ -1,4 +1,6 @@
 defmodule Bencode.Decoder.Error do
+  @moduledoc false
+
   defexception(
     reason: nil,
     action: "",

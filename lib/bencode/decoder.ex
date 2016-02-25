@@ -1,4 +1,5 @@
 defmodule Bencode.Decoder do
+  @moduledoc false
   alias Bencode.Decoder.Error
   alias Bencode.Decoder.Options
 
@@ -111,14 +112,14 @@ defmodule Bencode.Decoder do
   #=strings ------------------------------------------------------------
   defp decode_string(state, acc \\ [])
   defp decode_string(%State{rest: <<":", data::binary>>} = state, acc) do
-    length = prepare_integer acc
+    len = prepare_integer acc
     case data do
-      <<string::size(length)-binary, rest::binary>> ->
+      <<string::binary-size(len), rest::binary>> ->
         %State{state|rest: rest,data: string}
-        |> advance_position(1 + length)
+        |> advance_position(1 + len)
 
       _ ->
-        {:error, "expected a string of length #{length} at #{state.position + 1} but got out of bounds"}
+        {:error, "expected a string of length #{len} at #{state.position + 1} but got out of bounds"}
     end
   end
   defp decode_string(%State{rest: <<number, rest::binary>>} = state, acc) when number in ?0..?9 do
@@ -178,8 +179,8 @@ defmodule Bencode.Decoder do
 
   defp get_raw_source_data(data) do
     with(
-      {:ok, _, length} <- do_scan(data, 0),
-      <<raw_source_data::binary-size(length), _::binary>> <- data,
+      {:ok, _, len} <- do_scan(data, 0),
+      <<raw_source_data::binary-size(len), _::binary>> <- data,
       do: {:ok, raw_source_data}
     )
   end
@@ -207,10 +208,10 @@ defmodule Bencode.Decoder do
   # scan strings
   defp do_scan_string(data, acc \\ [], offset)
   defp do_scan_string(<<":", data::binary>>, acc, offset) do
-    length = prepare_integer(acc)
+    len = prepare_integer(acc)
     case data do
-      <<_::size(length)-binary, rest::binary>> ->
-        {:ok, rest, offset + length + 1}
+      <<_::binary-size(len), rest::binary>> ->
+        {:ok, rest, offset + len + 1}
 
       _ ->
         {:error, "faulty info dictionary"}
