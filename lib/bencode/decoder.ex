@@ -53,6 +53,16 @@ defmodule Bencode.Decoder do
     end
   end
 
+  @spec decode_with_info_hash!(binary) :: {encodable, <<_::20 * 8>> | nil} | no_return
+  def decode_with_info_hash!(data) do
+    case decode_with_info_hash(data) do
+      {:ok, data, checksum} ->
+        {data, checksum}
+      {:error, reason} = error ->
+        raise Error, reason: reason, action: "decode data", data: data
+    end
+  end
+
   # handle integers
   defp do_decode(%State{rest: <<"i", data::binary>>} = state) do
     %State{state|rest: data}
