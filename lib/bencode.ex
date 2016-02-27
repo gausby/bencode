@@ -14,19 +14,15 @@ defmodule Bencode do
     end
   end
 
-  @spec encode!(encodable) :: binary | no_return
   defdelegate encode!(data),
     to: Bencode.Encoder
 
-  @spec decode(binary) :: {:ok, encodable} | {:error, binary}
   defdelegate decode(data),
     to: Bencode.Decoder
 
-  @spec decode!(binary) :: encodable | no_return
   defdelegate decode!(data),
     to: Bencode.Decoder
 
-  @spec decode_with_info_hash(binary) :: {:ok, encodable, <<_::20 * 8>> | nil} | {:error, binary}
   defdelegate decode_with_info_hash(data),
     to: Bencode.Decoder
 end

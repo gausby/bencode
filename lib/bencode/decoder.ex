@@ -1,4 +1,6 @@
 defmodule Bencode.Decoder do
+  @type encodable :: binary | atom | Map | List | Integer
+
   @moduledoc false
   alias Bencode.Decoder.Error
   alias Bencode.Decoder.Options
@@ -12,6 +14,7 @@ defmodule Bencode.Decoder do
   )
   alias Bencode.Decoder, as: State
 
+  @spec decode(binary) :: {:ok, encodable} | {:error, binary}
   def decode(data) do
     case do_decode(%State{rest: data}) do
       %State{data: data, rest: ""} ->
@@ -25,6 +28,7 @@ defmodule Bencode.Decoder do
     end
   end
 
+  @spec decode!(binary) :: encodable | no_return
   def decode!(data) do
     case decode(data) do
       {:ok, result} ->
@@ -35,6 +39,7 @@ defmodule Bencode.Decoder do
     end
   end
 
+  @spec decode_with_info_hash(binary) :: {:ok, encodable, <<_::20 * 8>> | nil} | {:error, binary}
   def decode_with_info_hash(data) do
     case do_decode(%State{rest: data, opts: %Options{calculate_info_hash: true}}) do
       %State{data: data, rest: "", checksum: checksum} ->
