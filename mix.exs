@@ -3,7 +3,7 @@ defmodule Bencode.Mixfile do
 
   def project do
     [app: :bencode,
-     version: "0.2.2",
+     version: "0.3.0",
      elixir: "~> 1.2",
      test_pattern: "*_{test,eqc}.exs",
      build_embedded: Mix.env == :prod,
@@ -32,7 +32,8 @@ defmodule Bencode.Mixfile do
      maintainers: ["Martin Gausby"],
      licenses: ["Apache 2.0"],
      links: %{"GitHub" => "https://github.com/gausby/bencode",
-              "Issues" => "https://github.com/gausby/bencode/issues"}]
+              "Issues" => "https://github.com/gausby/bencode/issues",
+              "Contributors" => "https://github.com/gausby/bencode/graphs/contributors"}]
   end
 
   defp deps do

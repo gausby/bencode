@@ -22,6 +22,8 @@ The decoder should handle malformed data, either by raising an error, or returni
 
 * `Bencode.decode_with_info_hash/1` will decode a b-code encoded string and return a 3-tuple; containing the status (`:ok`), its Elixir data structure representation along with the checksum of the info dictionary. If no info-dictionary was found the last value will be `nil`. `{:error, reason}` will get returned if the input data was invalid b-code.
 
+* `Bencode.decode_with_info_hash!/1` will do the same as the `Bencode.decode_with_info_hash/1` function, but will raise if the given input is malformed.
+
 ## Installation
 
 Bencode is [available in Hex](https://hex.pm/packages/bencode), and can be installed by adding it to the list of  dependencies in `mix.exs`:
@@ -39,6 +41,13 @@ Notice that there are other bencode implementations on [hex](https://hex.pm/). P
 * [bencoder](https://hex.pm/packages/bencoder) by [Alexander Ivanov](https://github.com/alehander42)
 
 * [elixir_bencode](https://hex.pm/packages/elixir_bencode) by [Anton Fagerberg](https://github.com/AntonFagerberg/)
+
+
+## Thanks
+Thanks to the following for their contributions to the project:
+
+  * [preciz](https://github.com/preciz)
+
 
 ## License
 
