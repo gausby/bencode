@@ -30,7 +30,7 @@ Bencode is [available in Hex](https://hex.pm/packages/bencode), and can be insta
 
 ``` elixir
   def deps do
-    [{:bencode, "~> 0.2.0"}]
+    [{:bencode, "~> 0.3.0"}]
   end
 ```
 
