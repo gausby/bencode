@@ -25,4 +25,7 @@ defmodule Bencode do
 
   defdelegate decode_with_info_hash(data),
     to: Bencode.Decoder
+
+  defdelegate decode_with_info_hash!(data),
+    to: Bencode.Decoder
 end
