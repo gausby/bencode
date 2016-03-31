@@ -42,6 +42,7 @@ Notice that there are other bencode implementations on [hex](https://hex.pm/). P
 
 * [elixir_bencode](https://hex.pm/packages/elixir_bencode) by [Anton Fagerberg](https://github.com/AntonFagerberg/)
 
+* [bento](https://hex.pm/packages/bento) by [Rodney Folz](https://github.com/folz/)
 
 ## Thanks
 Thanks to the following for their contributions to the project:
