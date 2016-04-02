@@ -3,7 +3,7 @@ defmodule Bencode.Mixfile do
 
   def project do
     [app: :bencode,
-     version: "0.3.0",
+     version: "0.3.1",
      elixir: "~> 1.2",
      test_pattern: "*_{test,eqc}.exs",
      build_embedded: Mix.env == :prod,
@@ -19,7 +19,7 @@ defmodule Bencode.Mixfile do
 
   defp description do
     """
-    A bencode encoder and decoder.
+    A complete and correct Bencode encoder and decoder written in pure Elixir.
 
     The decoder will return the info hash with along with the decoded data, and
     the encoder is implemented as a protocol, allowing any data structure to be

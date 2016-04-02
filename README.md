@@ -4,7 +4,7 @@
 [![Hex version](https://img.shields.io/hexpm/v/bencode.svg "Hex version")](https://hex.pm/packages/bencode)
 [<img src="http://quickcheck-ci.com/p/gausby/bencode.png" alt="QuickCheck CI Status" width="100px" height="18px">](http://quickcheck-ci.com/p/gausby/bencode)
 
-A Bencode encoder and decoder for Elixir.
+A complete and correct Bencode encoder and decoder written in pure Elixir.
 
 The encoder is implemented as a protocol, allowing implementations for custom structs.
 
@@ -43,6 +43,8 @@ Notice that there are other bencode implementations on [hex](https://hex.pm/). P
 * [elixir_bencode](https://hex.pm/packages/elixir_bencode) by [Anton Fagerberg](https://github.com/AntonFagerberg/)
 
 * [bento](https://hex.pm/packages/bento) by [Rodney Folz](https://github.com/folz/)
+
+Bento is the fastest option, but Bencode has arguably better error reporting during decoding.
 
 ## Thanks
 Thanks to the following for their contributions to the project:
