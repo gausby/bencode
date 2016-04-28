@@ -153,10 +153,9 @@ defmodule Bencode.Decoder do
     |> advance_position
   end
   defp decode_list(%State{rest: data} = state, acc) when data != "" do
-    with(
-      %State{data: list_item} = new_state <- do_decode(state),
-      do: decode_list(new_state, [list_item|acc])
-    )
+    with %State{data: list_item} = new_state <- do_decode(state) do
+      decode_list(new_state, [list_item|acc])
+    end
   end
   # errors
   defp decode_list(%State{rest: <<>>, position: position}, _) do
@@ -170,11 +169,10 @@ defmodule Bencode.Decoder do
     |> advance_position
   end
   defp decode_dictionary(%State{rest: rest} = state, acc) when rest != "" do
-    with(
-      %State{data: key} = state <- do_decode(state),
-      %State{data: value} = state <- do_decode(state),
-      do: decode_dictionary(state, Map.put_new(acc, key, value))
-    )
+    with %State{data: key} = state <- do_decode(state),
+         %State{data: value} = state <- do_decode(state) do
+      decode_dictionary(state, Map.put_new(acc, key, value))
+    end
   end
   # errors
   defp decode_dictionary(%State{rest: <<>>, position: position}, _) do
@@ -193,11 +191,10 @@ defmodule Bencode.Decoder do
   end
 
   defp get_raw_source_data(data) do
-    with(
-      {:ok, _, len} <- do_scan(data, 0),
-      <<raw_source_data::binary-size(len), _::binary>> <- data,
-      do: {:ok, raw_source_data}
-    )
+    with {:ok, _, len} <- do_scan(data, 0),
+         <<raw_source_data::binary-size(len), _::binary>> <- data do
+      {:ok, raw_source_data}
+    end
   end
 
   #=scan ===============================================================
@@ -241,10 +238,9 @@ defmodule Bencode.Decoder do
   defp do_scan_list(<<"e", rest::binary>>, offset),
     do: {:ok, rest, offset + 1}
   defp do_scan_list(data, offset) when data != "" do
-    with(
-      {:ok, rest, offset} <- do_scan(data, offset),
-      do: do_scan_list(rest, offset)
-    )
+    with {:ok, rest, offset} <- do_scan(data, offset) do
+      do_scan_list(rest, offset)
+    end
   end
   defp do_scan_list(<<>>, _offset),
     do: {:error, "faulty info dictionary"}
@@ -253,13 +249,11 @@ defmodule Bencode.Decoder do
   defp do_scan_dictionary(<<"e", data::binary>>, offset),
     do: {:ok, data, offset + 1}
   defp do_scan_dictionary(data, offset) when data != "" do
-    with(
-      # scan key
-      {:ok, rest, offset} <- do_scan(data, offset),
-      # scan value
-      {:ok, rest, offset} <- do_scan(rest, offset),
-      do: do_scan_dictionary(rest, offset)
-    )
+    # first scan key, then the value
+    with {:ok, rest, offset} <- do_scan(data, offset),
+         {:ok, rest, offset} <- do_scan(rest, offset) do
+      do_scan_dictionary(rest, offset)
+    end
   end
   defp do_scan_dictionary(<<>>, _offset),
     do: {:error, "faulty info dictionary"}
