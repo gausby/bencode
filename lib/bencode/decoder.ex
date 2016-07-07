@@ -39,7 +39,7 @@ defmodule Bencode.Decoder do
     end
   end
 
-  @spec decode_with_info_hash(binary) :: {:ok, encodable, <<_::20 * 8>> | nil} | {:error, binary}
+  @spec decode_with_info_hash(binary) :: {:ok, encodable, binary | nil} | {:error, binary}
   def decode_with_info_hash(data) do
     case do_decode(%State{rest: data, opts: %Options{calculate_info_hash: true}}) do
       %State{data: data, rest: "", checksum: checksum} ->
@@ -53,7 +53,7 @@ defmodule Bencode.Decoder do
     end
   end
 
-  @spec decode_with_info_hash!(binary) :: {encodable, <<_::20 * 8>> | nil} | no_return
+  @spec decode_with_info_hash!(binary) :: {encodable, binary | nil} | no_return
   def decode_with_info_hash!(data) do
     case decode_with_info_hash(data) do
       {:ok, data, checksum} ->
