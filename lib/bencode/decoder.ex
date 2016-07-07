@@ -58,7 +58,7 @@ defmodule Bencode.Decoder do
     case decode_with_info_hash(data) do
       {:ok, data, checksum} ->
         {data, checksum}
-      {:error, reason} = error ->
+      {:error, reason} ->
         raise Error, reason: reason, action: "decode data", data: data
     end
   end
