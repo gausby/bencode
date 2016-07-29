@@ -37,7 +37,7 @@ defmodule Bencode.Mixfile do
   end
 
   defp deps do
-    [{:eqc_ex, "~> 1.2.4"},
-     {:credo, "~> 0.4.5", only: [:dev, :test]}]
+    [{:eqc_ex, "~> 1.3.0"},
+     {:credo, "~> 0.4.7", only: [:dev, :test]}]
   end
 end
