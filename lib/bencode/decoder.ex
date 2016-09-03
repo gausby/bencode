@@ -21,7 +21,7 @@ defmodule Bencode.Decoder do
         {:ok, data}
 
       %State{rest: <<char, _::binary>>, position: position} ->
-        {:error, "unexpected character at #{position}, expected no more data, got: #{[char]}"}
+        {:error, "unexpected character at #{position}, expected no more data, got: \"#{[char]}\""}
 
       {:error, _} = error ->
         error
@@ -46,7 +46,7 @@ defmodule Bencode.Decoder do
         {:ok, data, checksum}
 
       %State{rest: <<char, _::binary>>, position: position} ->
-        {:error, "unexpected character at #{position}, expected no more data, got: #{[char]}"}
+        {:error, "unexpected character at #{position}, expected no more data, got: \"#{[char]}\""}
 
       {:error, _} = error ->
         error
@@ -101,7 +101,7 @@ defmodule Bencode.Decoder do
     decode_string(state)
   end
   defp do_decode(%State{rest: <<char, _::binary>>, position: position}) do
-    {:error, "unexpected character at #{position}, expected a string; an integer; a list; or a dictionary, got: #{[char]}"}
+    {:error, "unexpected character at #{position}, expected a string; an integer; a list; or a dictionary, got: \"#{[char]}\""}
   end
   # handle empty strings
   defp do_decode(%State{rest: <<>>} = state),
@@ -122,7 +122,7 @@ defmodule Bencode.Decoder do
   defp decode_integer(%State{rest: <<"e", _::binary>>} = state, []),
     do: {:error, "empty integer starting at #{state.position - 1}"}
   defp decode_integer(%State{rest: <<char, _::binary>>, position: position}, _),
-    do: {:error, "unexpected character at #{position}, expected a number or an `e`, got: #{[char]}"}
+    do: {:error, "unexpected character at #{position}, expected a number or an `e`, got: \"#{[char]}\""}
 
   #=strings ------------------------------------------------------------
   defp decode_string(state, acc \\ [])
@@ -143,7 +143,7 @@ defmodule Bencode.Decoder do
     |> decode_string([number|acc])
   end
   defp decode_string(%State{rest: <<char, _::binary>>, position: position}, _) do
-    {:error, "unexpected character at #{position}, expected a number or an `:`, got: #{[char]}"}
+    {:error, "unexpected character at #{position}, expected a number or an `:`, got: \"#{[char]}\""}
   end
 
   #=lists --------------------------------------------------------------
@@ -257,5 +257,4 @@ defmodule Bencode.Decoder do
   end
   defp do_scan_dictionary(<<>>, _offset),
     do: {:error, "faulty info dictionary"}
-
 end
