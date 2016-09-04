@@ -12,6 +12,10 @@ defmodule Bencode.Decoder.Options do
       found doing decoding.
 
   """
+
+  @opaque t :: %Bencode.Decoder.Options{
+    calculate_info_hash: boolean
+  }
   defstruct(
     calculate_info_hash: false
   )

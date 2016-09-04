@@ -5,6 +5,13 @@ defmodule Bencode.Decoder do
   alias Bencode.Decoder.Error
   alias Bencode.Decoder.Options
 
+  @type t :: %Bencode.Decoder{
+    rest: binary,
+    position: non_neg_integer,
+    checksum: binary | nil,
+    data: binary | nil,
+    opts: Bencode.Decoder.Options.t
+  }
   defstruct(
     rest: "",
     position: 0,
