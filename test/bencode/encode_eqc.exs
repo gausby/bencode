@@ -4,13 +4,13 @@ defmodule Bencode.EncodeEQC do
 
   # numbers
   property "encode numbers" do
-    forall input <- int do
+    forall input <- int() do
       ensure Bencode.encode!(input) == "i#{input}e"
     end
   end
 
   property "encode strings" do
-    forall input <- utf8 do
+    forall input <- utf8() do
       ensure Bencode.encode!(input) == "#{byte_size input}:#{input}"
     end
   end

@@ -8,9 +8,9 @@ defmodule Bencode.Mixfile do
      test_pattern: "*_{test,eqc}.exs",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     description: description,
-     package: package,
-     deps: deps]
+     description: description(),
+     package: package(),
+     deps: deps()]
   end
 
   def application do
@@ -38,6 +38,6 @@ defmodule Bencode.Mixfile do
 
   defp deps do
     [{:eqc_ex, "~> 1.3.0"},
-     {:credo, "~> 0.4.7", only: [:dev, :test]}]
+     {:credo, "~> 0.6.1", only: [:dev, :test]}]
   end
 end

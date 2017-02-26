@@ -4,7 +4,7 @@ defmodule Bencode.DecodeEQC do
 
   # Decode
   property "decode numbers" do
-    forall input <- int do
+    forall input <- int() do
       encoded_input = "i#{input}e"
       {:ok, decoded_result} = Bencode.decode(encoded_input)
       ensure decoded_result == input
@@ -12,7 +12,7 @@ defmodule Bencode.DecodeEQC do
   end
 
   property "decode strings" do
-    forall input <- utf8 do
+    forall input <- utf8() do
       encoded_input = "#{byte_size input}:#{input}"
       {:ok, decoded_result} = Bencode.decode(encoded_input)
       ensure decoded_result == input
