@@ -1,6 +1,10 @@
 defprotocol Bencode.Encoder do
   @type encodable :: binary | atom | Map | List | Integer
 
+  @doc """
+  Encode a given data structure to the b-code representation;
+  it will raise an error if the given input is invalid.
+  """
   @spec encode!(encodable) :: binary | no_return
   def encode!(data)
 end
