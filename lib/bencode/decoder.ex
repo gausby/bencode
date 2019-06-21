@@ -21,6 +21,12 @@ defmodule Bencode.Decoder do
   )
   alias Bencode.Decoder, as: State
 
+  @doc """
+  Decode a b-code encoded string and return a 2-tuple;
+  containing the status (`:ok`) and its Elixir data structure representation.
+
+  Should the data be invalid a 2-tuple will get returned with `{:error, reason}`
+  """
   @spec decode(binary) :: {:ok, encodable} | {:error, binary}
   def decode(data) do
     case do_decode(%State{rest: data}) do
@@ -35,6 +41,12 @@ defmodule Bencode.Decoder do
     end
   end
 
+  @doc """
+  Decode a b-code encoded string and return the decoded result
+  as an Elixir data structure.
+
+  If the input is invalid an it will raise with the reason.
+  """
   @spec decode!(binary) :: encodable | no_return
   def decode!(data) do
     case decode(data) do
@@ -46,6 +58,14 @@ defmodule Bencode.Decoder do
     end
   end
 
+  @doc """
+  Decode a b-code encoded string and return a 3-tuple;
+  containing the status (`:ok`), its Elixir data structure representation along
+  with the checksum of the info dictionary.
+
+  If no info-dictionary was found the last value will be `nil`.
+  `{:error, reason}` will get returned if the input data was invalid b-code.
+  """
   @spec decode_with_info_hash(binary) :: {:ok, encodable, binary | nil} | {:error, binary}
   def decode_with_info_hash(data) do
     case do_decode(%State{rest: data, opts: %Options{calculate_info_hash: true}}) do
@@ -60,6 +80,10 @@ defmodule Bencode.Decoder do
     end
   end
 
+  @doc """
+  Same as the `Bencode.decode_with_info_hash/1` function,
+  but will raise if the given input is malformed.
+  """
   @spec decode_with_info_hash!(binary) :: {encodable, binary | nil} | no_return
   def decode_with_info_hash!(data) do
     case decode_with_info_hash(data) do
