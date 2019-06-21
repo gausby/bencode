@@ -21,7 +21,7 @@ end
 
 defimpl Bencode.Encoder, for: BitString do
   def encode!(string),
-    do: "#{byte_size string}:#{string}"
+    do: "#{byte_size(string)}:#{string}"
 end
 
 defimpl Bencode.Encoder, for: List do
@@ -34,10 +34,10 @@ defimpl Bencode.Encoder, for: Map do
     do: "d#{Enum.map_join(data, &encode_pair/1)}e"
 
   defp encode_pair({key, value}) when is_bitstring(key),
-    do: "#{Bencode.Encoder.encode! key}#{Bencode.Encoder.encode! value}"
+    do: "#{Bencode.Encoder.encode!(key)}#{Bencode.Encoder.encode!(value)}"
 
   defp encode_pair({key, value}) when is_atom(key) do
-    key_string = Atom.to_string key
-    "#{Bencode.Encoder.encode! key_string}#{Bencode.Encoder.encode! value}"
+    key_string = Atom.to_string(key)
+    "#{Bencode.Encoder.encode!(key_string)}#{Bencode.Encoder.encode!(value)}"
   end
 end

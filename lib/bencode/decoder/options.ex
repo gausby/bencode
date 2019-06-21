@@ -13,10 +13,6 @@ defmodule Bencode.Decoder.Options do
 
   """
 
-  @opaque t :: %Bencode.Decoder.Options{
-    calculate_info_hash: boolean
-  }
-  defstruct(
-    calculate_info_hash: false
-  )
+  @opaque t :: %Bencode.Decoder.Options{calculate_info_hash: boolean}
+  defstruct(calculate_info_hash: false)
 end

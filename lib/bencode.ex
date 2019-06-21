@@ -15,7 +15,7 @@ defmodule Bencode do
       {:ok, result}
     rescue
       e in Protocol.UndefinedError ->
-        {:error, "protocol Bencode.Encoder is not implemented for #{inspect e.value}"}
+        {:error, "protocol Bencode.Encoder is not implemented for #{inspect(e.value)}"}
     end
   end
 
