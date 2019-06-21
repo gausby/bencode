@@ -4,13 +4,12 @@ defmodule Bencode do
   @spec encode(encodable) :: {:ok, binary} | {:error, binary}
   def encode(data) do
     try do
-      Bencode.Encoder.encode!(data)
+      result = Bencode.Encoder.encode!(data)
+
+      {:ok, result}
     rescue
       e in Protocol.UndefinedError ->
         {:error, "protocol Bencode.Encoder is not implemented for #{inspect e.value}"}
-    else
-      result ->
-        {:ok, result}
     end
   end
 
