@@ -1,16 +1,19 @@
 defmodule Bencode.Mixfile do
   use Mix.Project
 
+  @version "0.3.2"
+
   def project do
     [app: :bencode,
-     version: "0.3.2",
+     version: @version,
      elixir: "~> 1.2",
      test_pattern: "*_{test,eqc}.exs",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      description: description(),
      package: package(),
-     deps: deps()]
+     deps: deps(),
+     docs: docs()]
   end
 
   def application do
@@ -37,6 +40,17 @@ defmodule Bencode.Mixfile do
   end
 
   defp deps do
-    [{:eqc_ex, "~> 1.3.0"}]
+    [
+      {:eqc_ex, "~> 1.3.0"},
+      {:ex_doc, "~> 0.18.0", only: :dev, runtime: false},
+    ]
+  end
+
+  defp docs do
+    [
+      main: "Bencode",
+      source_ref: "v#{@version}",
+      source_url: "https://github.com/gausby/bencode",
+    ]
   end
 end
